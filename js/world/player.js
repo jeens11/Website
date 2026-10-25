@@ -84,6 +84,41 @@ export function createPlayer(THREE, scene, driveState) {
   headlight.target.position.set(0, 0, -14);
   chassis.add(headlight, headlight.target);
 
+  car.traverse((object) => {
+    if (object.isMesh) object.castShadow = true;
+  });
+
+  // Visible headlight beams (added after the shadow pass setup so they cast none).
+  // They fade in as the sky darkens; see setNight().
+  const beamCanvas = document.createElement('canvas');
+  beamCanvas.width = 4;
+  beamCanvas.height = 128;
+  const beamContext = beamCanvas.getContext('2d');
+  const beamGradient = beamContext.createLinearGradient(0, 0, 0, 128);
+  beamGradient.addColorStop(0, 'rgba(255,255,255,.9)');
+  beamGradient.addColorStop(1, 'rgba(255,255,255,0)');
+  beamContext.fillStyle = beamGradient;
+  beamContext.fillRect(0, 0, 4, 128);
+  const beamMaterial = new THREE.MeshBasicMaterial({
+    color: 0xfff1cf, map: new THREE.CanvasTexture(beamCanvas), transparent: true, opacity: 0,
+    blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide,
+  });
+  const beamLength = 10;
+  const beamGeometry = new THREE.ConeGeometry(1.5, beamLength, 20, 1, true);
+  for (const x of [-0.65, 0.65]) {
+    const beam = new THREE.Mesh(beamGeometry, beamMaterial);
+    // Apex at the lamp, opening forward (-Z) and tilting slightly toward the ground.
+    beam.rotation.x = Math.PI / 2 - 0.07;
+    beam.position.set(x, 0.72, -1.85 - beamLength / 2);
+    chassis.add(beam);
+  }
+
+  /** 0 = dusk, 1 = midnight: headlights matter more in the dark. */
+  function setNight(night) {
+    beamMaterial.opacity = 0.03 + 0.13 * night;
+    headlight.intensity = 50 + 70 * night;
+  }
+
   const underglow = new THREE.PointLight(0xb9a4ff, 5, 8, 2);
   underglow.position.set(0, 0.2, 0);
   car.add(underglow);
@@ -145,7 +180,7 @@ export function createPlayer(THREE, scene, driveState) {
     chassis.position.y = bounce;
 
     // Brake lights flare when braking or reversing.
-    const braking = (input.keys.has('down') || input.joyY < -0.22);
+    const braking = input.keys.has('down') || input.joyY < -0.22 || Boolean(driveState.autoInput?.brake);
     brakeLamp.color.setHex(braking ? 0xff6b86 : 0xc2183a);
     tailL.scale.y = tailR.scale.y = braking ? 1.6 : 1;
 
@@ -162,7 +197,7 @@ export function createPlayer(THREE, scene, driveState) {
     return { ...movement, drifting, braking };
   }
 
-  return { car, update, reset };
+  return { car, update, reset, setNight };
 }
 
 function inputIsActive(input) {

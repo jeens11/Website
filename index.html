@@ -4,8 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#0a0714">
-    <meta name="description" content="Jawad Naheen Shamim — computer science, interaction design, data, and software shaped around people.">
-    <title>Jawad Naheen Shamim — Portfolio</title>
+    <meta name="description" content="Jawad Naheen Shamim — CPSC 581 design portfolio. Interaction design case studies, design philosophy, and a drivable 3D world.">
+    <title>Jawad Naheen Shamim — Design Portfolio</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -17,22 +17,27 @@
     <link rel="stylesheet" href="css/portfolio.css">
     <script type="module" src="js/main.js"></script>
   </head>
-  <body class="portfolio-mode">
-    <div class="intro" id="intro" hidden>
-      <div class="intro-mark"><span>J</span><span>S</span></div>
+  <body>
+    <script>
+      // A link to a specific section (e.g. #projects) opens the non-3D view directly;
+      // everything else starts in the 3D world.
+      if (/^#(?!home$|world$)./.test(location.hash)) document.body.classList.add('portfolio-mode');
+    </script>
+    <div class="intro" id="intro">
+      <div class="intro-mark"><span>J</span><span>N</span><span>S</span></div>
       <div class="intro-bar"><i></i></div>
       <p role="status">Opening the 3D world…</p>
-      <button class="classic-toggle" id="cancelWorld" type="button">Back to portfolio</button>
+      <button class="classic-toggle" id="cancelWorld" type="button">Skip the 3D world</button>
     </div>
     <header class="topbar">
       <div class="topbar-inner">
-        <a class="brand" href="#home" aria-label="Return to the portfolio">
+        <a class="brand" href="#home" aria-label="Jawad Naheen Shamim, back to the start of the 3D world">
           <strong>Jawad Naheen Shamim</strong>
-          <span>Computer Science · Calgary</span>
+          <span>CPSC 581 · Design portfolio</span>
         </a>
         <button class="menu-button" id="menuButton" type="button" aria-expanded="false" aria-controls="siteNav">Menu</button>
         <nav class="nav" id="siteNav" aria-label="Portfolio sections">
-          <button class="classic-toggle" id="classicToggle" type="button">Portfolio</button>
+          <button class="classic-toggle" id="classicToggle" type="button">View without 3D</button>
           <button class="sound-toggle" id="soundToggle" type="button" aria-pressed="true" aria-label="Toggle sound">
             <span class="sound-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="sound-label">Sound on</span>
           </button>
@@ -40,25 +45,44 @@
       </div>
     </header>
 
-    <canvas id="world" aria-label="Three-dimensional portfolio world. Drive toward a section and press E or Enter to open it."></canvas>
+    <canvas id="world" aria-label="Three-dimensional portfolio world. Drive toward a section and press E or Enter to open it, press 1 to 6, or choose a map number and the car drives there."></canvas>
     <div id="boostEffect" aria-hidden="true"></div>
 
     <div class="hero" id="home">
-      <div class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> CPSC 581 · Portfolio / Fall 2026</div>
-      <h1 aria-label="Jawad Shamim"><span class="line" aria-hidden="true"><b>Jawad</b></span><span class="line hero-indent" aria-hidden="true"><b>Shamim</b></span></h1>
-      <p>Computer science student exploring interaction design, visual experiences, data, and software shaped around people.</p>
+      <div class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> CPSC 581 · Design portfolio · Fall 2026</div>
+      <h1 aria-label="Jawad Naheen Shamim"><span class="line" aria-hidden="true"><b>Jawad</b></span><span class="line hero-indent" aria-hidden="true"><b>Shamim</b></span></h1>
+      <p>Computer science student at the University of Calgary. I design interactive systems that make complex ideas easy to try, see, and understand.</p>
+      <ol class="hero-steps" aria-label="How to explore">
+        <li><span aria-hidden="true">1</span><em class="only-keys">Drive with <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></em><em class="only-touch">Drag the joystick to drive</em></li>
+        <li><span aria-hidden="true">2</span>Stop at a glowing platform</li>
+        <li><span aria-hidden="true">3</span><em class="only-keys">Press <kbd>E</kbd> to open it</em><em class="only-touch">Tap Open</em></li>
+      </ol>
       <div class="hero-links">
-        <a href="#projects" data-area="projects">Selected projects ↓</a>
-        <a href="assets/jawad-naheen-shamim-resume.pdf" download>Resume PDF</a>
-        <a href="mailto:jawadnaheen.shamim@ucalgary.ca">Email</a>
+        <a href="#projects" data-area="projects">See my work</a>
+        <button type="button" data-open-classic>View without 3D</button>
+        <a href="assets/jawad-naheen-shamim-resume.pdf" download>Download Resume</a>
       </div>
     </div>
-    <div class="world-coordinate" id="worldCoordinate" aria-live="polite">WORLD 00 / FOLLOW THE BLUE LIGHTS</div>
+    <div class="world-coordinate" id="worldCoordinate" aria-live="polite">WORLD 00 / FOLLOW THE LIGHTS</div>
+    <div class="world-progress" id="worldProgress" aria-live="polite" hidden><span id="worldProgressCount">0/6</span> explored</div>
+    <button class="world-home" id="worldHome" type="button" hidden>Back to start</button>
+    <div class="world-tip" id="worldTip" role="status" aria-live="polite"></div>
+    <aside class="world-reward" id="worldReward" aria-labelledby="worldRewardTitle" hidden>
+      <p class="world-reward-kicker">6/6 explored</p>
+      <h2 id="worldRewardTitle">You’ve seen it all.</h2>
+      <p>Thanks for taking the full tour. Here is everything in one place.</p>
+      <div class="world-reward-links">
+        <a href="assets/jawad-naheen-shamim-resume.pdf" download>Download Resume</a>
+        <a href="mailto:jawadnaheen.shamim@ucalgary.ca">Email me</a>
+        <button type="button" data-open-classic>View without 3D</button>
+      </div>
+      <button class="world-reward-close" id="worldRewardClose" type="button">Keep driving</button>
+    </aside>
 
     <aside class="scene-hint" aria-label="Keyboard controls">
-      <div class="control-row"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><span class="control-name">W accelerate · S reverse · A/D steer</span><kbd class="wide">SPACE</kbd><span class="control-name">Drift</span></div>
-      <div class="control-row"><kbd>E</kbd><span class="control-name">or</span><kbd class="wide">ENTER</kbd><span class="control-name">Open nearby section</span><kbd>R</kbd><span class="control-name">Reset</span></div>
-      <p>Arrow keys also work · follow the blue lights · click any map marker to open a section.</p>
+      <div class="control-row"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><span class="control-name">Drive &amp; steer</span><kbd class="wide">SPACE</kbd><span class="control-name">Drift</span><kbd>R</kbd><span class="control-name">Reset</span></div>
+      <div class="control-row"><kbd>E</kbd><span class="control-name">Open nearby</span><kbd>1</kbd><span class="control-name">–</span><kbd>6</kbd><span class="control-name">Jump to a section</span></div>
+      <p>Arrow keys work too · click a platform or map marker to open it</p>
     </aside>
 
     <div class="speedo" id="speedo" aria-hidden="true">
@@ -67,14 +91,14 @@
     </div>
 
     <div class="map-widget" id="mapWidget">
-      <span class="map-caption">World map · tap a destination</span>
-      <canvas id="miniMap" aria-label="Mini map with five portfolio destinations"></canvas>
+      <span class="map-caption">Map · click a number to drive there</span>
+      <canvas id="miniMap" aria-label="Mini map with six portfolio destinations"></canvas>
       <div class="map-markers" id="mapMarkers" role="group" aria-label="Open a portfolio destination from the map"></div>
     </div>
 
     <div class="proximity-prompt" id="proximityPrompt" aria-hidden="true" inert>
-      <div><strong class="prompt-title" id="promptTitle">Destination</strong><span class="prompt-distance" id="promptDistance">Press E to open</span></div>
-      <button class="open-near" id="openNear" type="button" disabled>Open ↗</button>
+      <div><strong class="prompt-title" id="promptTitle">Destination</strong><span class="prompt-distance" id="promptDistance">Press E to open</span><span class="prompt-preview" id="promptPreview"></span></div>
+      <button class="open-near" id="openNear" type="button" disabled>Open</button>
     </div>
 
     <div class="mobile-controls" id="mobileControls" aria-label="Mobile driving controls">
@@ -89,13 +113,13 @@
 
     <aside class="load-error" id="loadError" hidden>
       <strong>3D view unavailable</strong>
-      The interactive world could not start. Your portfolio is still available.
-      <br><button id="errorClassic" type="button">Back to portfolio</button>
+      The interactive world could not start. Everything is available without it.
+      <br><button id="errorClassic" type="button">View without 3D</button>
     </aside>
 
     <section class="content-view" id="contentView" role="dialog" aria-modal="true" aria-label="Portfolio section" aria-live="polite" aria-hidden="true">
       <div class="view-top">
-        <div class="current-page"><strong id="viewNumber">01</strong><span id="viewName">Experience</span></div>
+        <div class="current-page"><strong id="viewNumber">01</strong><span id="viewName">Work</span></div>
         <div class="view-toolbar">
           <nav class="view-tabs" id="viewTabs" aria-label="Switch portfolio section"></nav>
           <button class="back-button" id="backWorld" type="button">Back to world <span>Esc</span></button>
@@ -104,44 +128,49 @@
       <div class="view-inner" id="viewInner"></div>
     </section>
 
-    <main class="classic-site open" id="classicSite" aria-label="Jawad Naheen Shamim portfolio">
+    <main class="classic-site" id="classicSite" aria-label="Jawad Naheen Shamim portfolio">
       <a class="skip-link" href="#projects" data-area="projects">Skip to my work</a>
       <header class="portfolio-header">
-        <a class="portfolio-brand" href="#home" data-portfolio-home aria-label="Jawad Naheen Shamim, home"><span class="brand-monogram" aria-hidden="true">JS<span>.</span></span><span>Jawad Naheen Shamim<small>Computer Science · Calgary</small></span></a>
+        <a class="portfolio-brand" href="#home" data-portfolio-home aria-label="Jawad Naheen Shamim, top of page"><span class="brand-monogram" aria-hidden="true">JNS<span>.</span></span><span>Jawad Naheen Shamim<small>CPSC 581 · Design portfolio</small></span></a>
         <button class="portfolio-menu" id="portfolioMenuButton" type="button" aria-expanded="false" aria-controls="portfolioNav">Menu <span aria-hidden="true">+</span></button>
-        <nav class="portfolio-nav" id="portfolioNav" aria-label="Main navigation">
-          <a href="#projects" data-area="projects">Work</a>
-          <a href="#experience" data-area="experience">Experience</a>
-          <a href="#skills" data-area="skills">Skills</a>
-          <a href="#education" data-area="education">About</a>
-          <a href="#contact" data-area="contact">Contact</a>
-          <button id="worldToggle" type="button">Explore 3D <span aria-hidden="true">↗</span></button>
-        </nav>
+        <nav class="portfolio-nav" id="portfolioNav" aria-label="Main navigation"></nav>
       </header>
       <section class="portfolio-hero" id="portfolioHome" aria-labelledby="portfolioTitle">
         <div class="portfolio-intro">
-          <p class="portfolio-kicker"><span aria-hidden="true"></span> Computer science, with people in mind.</p>
+          <p class="portfolio-kicker"><span aria-hidden="true"></span> CPSC 581 design portfolio · Fall 2026</p>
           <h1 id="portfolioTitle">Jawad Naheen<br><span>Shamim.</span></h1>
-          <p class="portfolio-summary">I’m a Computer Science student at the University of Calgary. I build interactive systems and use data to turn complex ideas into clear, useful experiences.</p>
-          <div class="portfolio-actions"><a class="primary-link" href="#projects" data-area="projects">Explore my work <span aria-hidden="true">↓</span></a><a class="text-link" href="assets/jawad-naheen-shamim-resume.pdf" download>Download résumé <span aria-hidden="true">↗</span></a></div>
-          <div class="portfolio-facts"><span>Interaction design</span><span>Software development</span><span>Data analysis</span></div>
+          <p class="portfolio-summary">Computer Science student at the University of Calgary. I design interactive systems that make complex ideas easy to try, see, and understand, and I use data to check that they work.</p>
+          <div class="portfolio-actions"><a class="primary-link" href="#projects" data-area="projects">See the case studies</a><a class="text-link" href="#philosophy" data-area="philosophy">My design philosophy</a></div>
+          <ol class="portfolio-toc" aria-label="What is in this portfolio"></ol>
+          <nav class="portfolio-quick" aria-label="Quick access">
+            <span>Quick access</span>
+            <a href="assets/jawad-naheen-shamim-resume.pdf" download>Download Resume</a>
+            <a href="mailto:jawadnaheen.shamim@ucalgary.ca">Email me</a>
+            <a href="https://airsculpt.onrender.com" target="_blank" rel="noopener noreferrer">AirSculpt prototype</a>
+            <a href="https://fourpartharmony.netlify.app" target="_blank" rel="noopener noreferrer">Four-Part Harmony live</a>
+            <a href="assets/airsculpt/process.pdf" target="_blank" rel="noopener noreferrer">Project reports (PDF)</a>
+          </nav>
         </div>
-        <a class="latest-project" href="#airsculpt" data-project="airsculpt" aria-label="Explore AirSculpt, my latest team project">
-          <div class="latest-project-top"><span>Latest team project / CPSC 581</span><span aria-hidden="true">↗</span></div>
+        <a class="latest-project" href="#airsculpt" data-project="airsculpt" aria-label="Open Project 02, AirSculpt">
+          <div class="latest-project-top"><span>Newest · Project 02 · CPSC 581</span></div>
           <img src="assets/airsculpt/studio.webp" width="800" height="534" alt="AirSculpt studio with 3D clay and spatial feedback" fetchpriority="high">
-          <div class="latest-project-bottom"><div><span>Embodied interaction · Expertise sharing</span><h2>AirSculpt</h2><p>Remote sculpting, taught through movement.</p></div><span class="project-arrow" aria-hidden="true">↗</span></div>
+          <div class="latest-project-bottom"><div><span>Embodied interaction · Expertise sharing</span><h2>AirSculpt</h2><p>Remote 3D sculpting, taught through movement.</p></div></div>
         </a>
       </section>
       <p class="portfolio-status" id="portfolioStatus" role="status" hidden></p>
-      <div id="classicContent" tabindex="-1"><p class="content-loading">Loading selected work… You can also <a href="assets/airsculpt/process.pdf">read the AirSculpt report</a>.</p></div>
-      <footer class="classic-footer"><a href="#home" data-portfolio-home>Jawad Naheen Shamim<span>Computer Science · University of Calgary</span></a><p>CPSC 581 · Fall 2026</p><a href="mailto:jawadnaheen.shamim@ucalgary.ca">Say hello ↗</a></footer>
+      <div id="classicContent" tabindex="-1"><p class="content-loading">Loading… You can also <a href="assets/airsculpt/process.pdf">read the AirSculpt report</a>.</p></div>
+      <footer class="classic-footer">
+        <a href="#home" data-portfolio-home>Jawad Naheen Shamim<span>Computer Science · University of Calgary</span></a>
+        <p>CPSC 581 · Fall 2026</p>
+        <a href="mailto:jawadnaheen.shamim@ucalgary.ca">Say hello</a>
+      </footer>
     </main>
 
-    <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Enlarged sketch" aria-hidden="true" hidden>
+    <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Enlarged image" aria-hidden="true" hidden>
       <button class="lightbox-close" id="lightboxClose" type="button" aria-label="Close enlarged image">Close <span>Esc</span></button>
       <figure><img id="lightboxImage" alt=""><figcaption id="lightboxCaption"></figcaption></figure>
     </div>
 
-    <noscript><p class="noscript-message">JavaScript is disabled. You can still read the <a href="assets/airsculpt/process.pdf">AirSculpt report</a> and <a href="assets/four-part-harmony-process.pdf">Four-Part Harmony report</a>, <a href="assets/jawad-naheen-shamim-resume.pdf">download my résumé</a>, or <a href="mailto:jawadnaheen.shamim@ucalgary.ca">email me</a>.</p></noscript>
+    <noscript><p class="noscript-message">JavaScript is disabled. You can still read the <a href="assets/airsculpt/process.pdf">AirSculpt report</a> and <a href="assets/four-part-harmony-process.pdf">Four-Part Harmony report</a>, <a href="assets/jawad-naheen-shamim-resume.pdf">download my resume</a>, or <a href="mailto:jawadnaheen.shamim@ucalgary.ca">email me</a>.</p></noscript>
   </body>
 </html>

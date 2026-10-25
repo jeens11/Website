@@ -53,18 +53,20 @@ document.addEventListener('portfolio:enter-world', async () => {
   }
   intro.hidden = false;
   intro.classList.remove('done');
-  document.getElementById('cancelWorld').focus({ preventScroll: true });
   if (worldStart) return;
-  worldStart = startWorld({ sections: portfolioSections, controls, driveState, openArea: navigation.openArea, audio });
+  const introStatus = intro.querySelector('[role="status"]');
+  worldStart = startWorld({
+    sections: portfolioSections, controls, driveState, openArea: navigation.openArea, audio,
+    onProgress: (text) => { introStatus.textContent = text; },
+  });
   try {
     await worldStart;
     worldReady = true;
-    if (!classic.classList.contains('open')) document.getElementById('classicToggle').focus({ preventScroll: true });
   } catch (error) {
     console.error('The optional 3D world could not start.', error);
     worldStart = null;
     const status = document.getElementById('portfolioStatus');
-    status.textContent = 'The 3D experience is unavailable on this device right now. You can explore all of my work below.';
+    status.textContent = 'The 3D world could not start on this device, so here is everything without it.';
     status.hidden = false;
     await navigation.openClassic();
   } finally {
@@ -72,10 +74,42 @@ document.addEventListener('portfolio:enter-world', async () => {
   }
 });
 
-// Reading the portfolio never waits for a 3D library, a camera, or a sound gesture.
 document.getElementById('cancelWorld').addEventListener('click', () => {
   dismissIntro();
   navigation.openClassic();
 });
 
-await navigation.openClassic(location.hash.slice(1));
+// Number keys jump straight to a section while in the world (1 = Work … 6 = Contact).
+document.addEventListener('keydown', (event) => {
+  if (event.metaKey || event.ctrlKey || event.altKey || document.body.classList.contains('portfolio-mode')) return;
+  if (!document.getElementById('lightbox').hidden || event.target.closest?.('input, textarea, select')) return;
+  const match = /^Digit([1-9])$/.exec(event.code);
+  const section = match && portfolioSections[Number(match[1]) - 1];
+  if (!section) return;
+  event.preventDefault();
+  navigation.openArea(section.id);
+});
+
+function supportsWebGL() {
+  try {
+    const canvas = document.createElement('canvas');
+    return Boolean(window.WebGLRenderingContext && (canvas.getContext('webgl2') || canvas.getContext('webgl')));
+  } catch {
+    return false;
+  }
+}
+
+// The 3D world is the home screen. Links to a specific section open the
+// non-3D view there, and devices without WebGL get it straight away.
+const target = location.hash.slice(1);
+if (document.body.classList.contains('portfolio-mode') || !supportsWebGL()) {
+  dismissIntro();
+  if (!supportsWebGL()) {
+    const status = document.getElementById('portfolioStatus');
+    status.textContent = 'This device cannot show the 3D world, so here is everything without it.';
+    status.hidden = false;
+  }
+  await navigation.openClassic(target);
+} else {
+  navigation.closeClassic();
+}

@@ -5,13 +5,18 @@ const damp = (current, target, amount) => current + (target - current) * amount;
 export function stepDrive(state, { delta, now, boostPads = [] }) {
   const { input, car } = state;
   const { keys, joyX, joyY } = input;
+  const auto = state.autoInput;
 
-  const left = keys.has('left') || joyX < -0.17;
-  const right = keys.has('right') || joyX > 0.17;
-  const forward = keys.has('up') || joyY > 0.17;
-  const reverse = keys.has('down') || joyY < -0.22;
+  const forward = keys.has('up') || joyY > 0.17 || Boolean(auto?.forward);
+  const reverse = keys.has('down') || joyY < -0.22 || Boolean(auto?.brake);
   const drifting = keys.has('drift');
-  const turnInput = Number(right) - Number(left);
+  // Keys steer fully; the joystick steers in proportion to how far it is pushed.
+  const keyTurn = Number(keys.has('right')) - Number(keys.has('left'));
+  const stickTurn = Math.abs(joyX) > 0.12 ? Math.sign(joyX) * Math.min(1, (Math.abs(joyX) - 0.12) / 0.7) : 0;
+  const turnInput = keyTurn || stickTurn || auto?.turn || 0;
+  let throttle = Math.min(1, Math.max(0.35, (joyY - 0.17) / 0.6));
+  if (keys.has('up')) throttle = 1;
+  else if (auto?.forward) throttle = auto.throttle;
 
   let boosting = car.boost > 0;
   if (!boosting && Math.abs(car.speed) > 0.3) {
@@ -27,7 +32,9 @@ export function stepDrive(state, { delta, now, boostPads = [] }) {
 
   const acceleration = boosting ? 15 : (drifting ? 12.5 : 9.5);
   const maxForward = boosting ? 23 : (drifting ? 19 : 15);
-  if (forward) car.speed = Math.min(maxForward, car.speed + acceleration * delta);
+  const cap = maxForward * (boosting ? 1 : throttle);
+  if (forward && car.speed < cap) car.speed = Math.min(cap, car.speed + acceleration * delta);
+  else if (forward) car.speed = Math.max(cap, car.speed * Math.exp(-0.52 * delta));
   else if (reverse) {
     if (car.speed > 0.25) car.speed = Math.max(0, car.speed - 18 * delta);
     else car.speed = Math.max(-5.5, car.speed - 8.5 * delta);
@@ -36,9 +43,11 @@ export function stepDrive(state, { delta, now, boostPads = [] }) {
   }
   if (Math.abs(car.speed) < 0.035) car.speed = 0;
 
-  car.steer = damp(car.steer, turnInput, Math.min(1, delta * 8));
+  car.steer = damp(car.steer, turnInput, Math.min(1, delta * (turnInput ? 7 : 10)));
+  // Steering tightens at low speed and relaxes a little at top speed.
+  const steerGrip = 1 - Math.min(1, Math.abs(car.speed) / 23) * 0.28;
   car.heading -= car.steer
-    * (drifting ? 1.75 : 1.28)
+    * (drifting ? 1.75 : 1.36) * steerGrip
     * delta
     * Math.min(1, Math.abs(car.speed) / 2.5)
     * (car.speed < 0 ? -1 : 1);

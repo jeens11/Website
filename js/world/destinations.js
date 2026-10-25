@@ -1,8 +1,23 @@
-function makeLabelTexture(THREE, section) {
+function makeBeaconTexture(THREE) {
   const canvas = document.createElement('canvas');
-  canvas.width = 960;
-  canvas.height = 170;
+  canvas.width = 4;
+  canvas.height = 256;
   const context = canvas.getContext('2d');
+  const gradient = context.createLinearGradient(0, 0, 0, 256);
+  gradient.addColorStop(0, 'rgba(255,255,255,0)');
+  gradient.addColorStop(0.55, 'rgba(255,255,255,.35)');
+  gradient.addColorStop(1, 'rgba(255,255,255,.9)');
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, 4, 256);
+  return new THREE.CanvasTexture(canvas);
+}
+
+export function makeLabelTexture(THREE, section, visited = false) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1920;
+  canvas.height = 340;
+  const context = canvas.getContext('2d');
+  context.scale(2, 2);
   const gradient = context.createLinearGradient(0, 0, 960, 0);
   gradient.addColorStop(0, 'rgba(18, 8, 38, .94)');
   gradient.addColorStop(1, 'rgba(38, 14, 62, .94)');
@@ -21,15 +36,23 @@ function makeLabelTexture(THREE, section) {
   context.roundRect(26, 34, 100, 102, 18);
   context.fill();
   context.fillStyle = '#12082a';
-  context.font = '700 56px monospace';
+  context.font = '500 54px "DM Mono", monospace';
   context.textAlign = 'center';
   context.fillText(section.number, 76, 106);
   context.textAlign = 'left';
   context.fillStyle = '#ffffff';
-  context.font = '700 62px Arial, sans-serif';
+  context.font = '800 64px Manrope, Arial, sans-serif';
   context.fillText(section.mapLabel, 156, 108);
+  if (visited) {
+    context.fillStyle = section.color;
+    context.font = '800 54px Manrope, Arial, sans-serif';
+    context.textAlign = 'right';
+    context.fillText('✓', 920, 106);
+  }
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
+  texture.generateMipmaps = false;
+  texture.minFilter = THREE.LinearFilter;
   return texture;
 }
 
@@ -41,6 +64,7 @@ function addLandmark(THREE, group, kind, colorHex) {
   const add = (geometry, material, x, y, z) => {
     const mesh = new THREE.Mesh(geometry, material);
     mesh.position.set(x, y, z);
+    mesh.castShadow = true;
     group.add(mesh);
     return mesh;
   };
@@ -70,6 +94,13 @@ function addLandmark(THREE, group, kind, colorHex) {
     add(new THREE.BoxGeometry(0.78, 0.45, 0.78), darkBlue, 0, 1.38, 0);
     add(new THREE.CylinderGeometry(0.018, 0.018, 0.94, 5), pale, 0.55, 1.55, 0.2);
     add(new THREE.SphereGeometry(0.08, 8, 8), pale, 0.55, 1.05, 0.2);
+  } else if (kind === 'philosophy') {
+    // A faceted "idea" gem inside an open frame: values at the core, method around them.
+    const frame = add(new THREE.OctahedronGeometry(1.05, 0), blue, 0, 1.55, 0);
+    frame.material = new THREE.MeshBasicMaterial({ color: tint, wireframe: true, transparent: true, opacity: 0.85 });
+    add(new THREE.OctahedronGeometry(0.42, 0), darkBlue, 0, 1.55, 0);
+    add(new THREE.TorusGeometry(1.35, 0.03, 5, 64), pale, 0, 1.55, 0).rotation.x = Math.PI / 2.4;
+    add(new THREE.TorusGeometry(1.5, 0.025, 5, 64), blue, 0, 0.1, 0).rotation.x = Math.PI / 2;
   } else {
     const outer = add(new THREE.TorusGeometry(0.82, 0.045, 7, 64), blue, 0, 1.32, 0);
     outer.rotation.x = Math.PI / 2;
@@ -120,6 +151,8 @@ export function createDestinations(THREE, scene, sections) {
   const gates = [];
   const boostPads = [];
   const padBaseGeometry = new THREE.PlaneGeometry(3.4, 2.6);
+  const beaconGeometry = new THREE.CylinderGeometry(0.55, 1.1, 46, 20, 1, true);
+  const beaconTexture = makeBeaconTexture(THREE);
 
   sections.forEach((section, index) => {
     const tint = new THREE.Color(section.color);
@@ -141,6 +174,7 @@ export function createDestinations(THREE, scene, sections) {
 
     const platform = new THREE.Mesh(new THREE.CylinderGeometry(5.35, 5.6, 0.25, 48), platformMaterial);
     platform.position.y = 0.1;
+    platform.receiveShadow = true;
     group.add(platform);
     const halo = new THREE.Mesh(new THREE.TorusGeometry(5.42, 0.14, 6, 72), haloMaterial);
     halo.rotation.x = Math.PI / 2;
@@ -172,6 +206,14 @@ export function createDestinations(THREE, scene, sections) {
     label.scale.set(7.3, 1.29, 1);
     group.add(label);
 
+    // A tall light column so every platform can be found from anywhere in the arena.
+    const beacon = new THREE.Mesh(beaconGeometry, new THREE.MeshBasicMaterial({
+      color: tint, map: beaconTexture, transparent: true, opacity: 0.5, side: THREE.DoubleSide,
+      depthWrite: false, blending: THREE.AdditiveBlending, fog: false,
+    }));
+    beacon.position.y = 23;
+    group.add(beacon);
+
     const beam = new THREE.Mesh(
       new THREE.CylinderGeometry(0.026, 0.026, 3.35, 6),
       new THREE.MeshBasicMaterial({ color: tint, transparent: true, opacity: 0.5 }),
@@ -197,6 +239,9 @@ export function createDestinations(THREE, scene, sections) {
       landmark,
       halo,
       light,
+      label,
+      beacon,
+      visited: false,
       color: tint,
     });
 

@@ -9,7 +9,7 @@ function createNavLink(section) {
 /** Fade/slide content in as it scrolls into view, staggered within each group. */
 function setupReveal(container, scroller) {
   const targets = container.querySelectorAll(
-    '.section-heading, .lead, .timeline-row, .reflection, .featured-project, .process-strip article, .project-gallery figure, .project-card, .skill-card, .method-list span, .note-card, .education-card, .coursework, .philosophy, .principle-grid article, .contact-intro, .contact-email, .contact-links, .disclosure, .subheading, .section-footer, .sketch-gallery figure, .contrib',
+    '.section-heading, .lead, .timeline-row, .reflection, .project-card, .skill-card, .method-list span, .note-card, .education-card, .coursework, .philosophy, .principle-grid article, .contact-intro, .contact-email, .contact-links, .subheading, .section-footer, .contrib-block, .story-step, .growth, .learn-card, .method-matrix, .tool-table, .approach-steps li, .log-list li',
   );
 
   const seen = new Map();
@@ -70,6 +70,8 @@ export function createNavigation({ sections, controls, audio }) {
     document.getElementById('mobileControls'),
     document.getElementById('mapWidget'),
     document.getElementById('proximityPrompt'),
+    document.getElementById('worldHome'),
+    document.getElementById('worldReward'),
   ];
 
   const lightbox = document.getElementById('lightbox');
@@ -89,6 +91,8 @@ export function createNavigation({ sections, controls, audio }) {
     lightboxImage.src = button.dataset.zoom;
     lightboxImage.alt = button.querySelector('img')?.alt || '';
     lightboxCaption.textContent = button.dataset.caption || '';
+    // Paper sketches sit on paper; screenshots sit on the dark stage.
+    lightbox.classList.toggle('is-paper', button.classList.contains('zoomable--paper'));
     lightbox.hidden = false;
     lightbox.setAttribute('aria-hidden', 'false');
     classic.inert = true;
@@ -142,10 +146,10 @@ export function createNavigation({ sections, controls, audio }) {
     return contentCache.get(section.id);
   }
 
-  async function openArea(id) {
+  async function openArea(id, projectId) {
     const section = sections.find((item) => item.id === id);
     if (!section) return;
-    if (classic.classList.contains('open')) return openClassic(id);
+    if (classic.classList.contains('open')) return openClassic(projectId || id);
 
     const wasOpen = view.classList.contains('open');
     const request = ++openRequest;
@@ -193,6 +197,7 @@ export function createNavigation({ sections, controls, audio }) {
 
     view.classList.add('open');
     view.inert = false;
+    document.dispatchEvent(new CustomEvent('portfolio:section-opened', { detail: { id } }));
     view.setAttribute('aria-hidden', 'false');
     audio?.play(wasOpen ? 'switch' : 'open');
 
@@ -204,6 +209,9 @@ export function createNavigation({ sections, controls, audio }) {
     if (!wasOpen) {
       document.getElementById('backWorld').focus({ preventScroll: true });
     }
+
+    const project = projectId && viewInner.querySelector(`[data-project-id="${CSS.escape(projectId)}"]`);
+    project?.scrollIntoView({ block: 'start' });
   }
 
   function closeArea() {
@@ -236,8 +244,7 @@ export function createNavigation({ sections, controls, audio }) {
 
   function loadClassic() {
     if (classicLoad) return classicLoad;
-    const order = ['projects', 'experience', 'skills', 'education', 'contact'];
-    const ordered = order.map((id) => sections.find((section) => section.id === id));
+    const ordered = sections;
     classicLoad = Promise.allSettled(ordered.map(loadSection)).then((results) => {
       classicContent.replaceChildren();
       results.forEach((result, index) => {
@@ -278,6 +285,18 @@ export function createNavigation({ sections, controls, audio }) {
           });
         }, { rootMargin: '-15% 0px -65% 0px' });
         classicContent.querySelectorAll('.classic-section').forEach((section) => observer.observe(section));
+
+        const projectLinks = classicContent.querySelectorAll('.project-jump [data-project]');
+        const projectObserver = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            projectLinks.forEach((link) => {
+              if (link.dataset.project === entry.target.dataset.projectId) link.setAttribute('aria-current', 'true');
+              else link.removeAttribute('aria-current');
+            });
+          });
+        }, { rootMargin: '-30% 0px -60% 0px' });
+        classicContent.querySelectorAll('[data-project-id]').forEach((project) => projectObserver.observe(project));
       }
     });
     return classicLoad;
@@ -295,7 +314,8 @@ export function createNavigation({ sections, controls, audio }) {
     nav.classList.remove('open');
     closePortfolioMenu();
     await loadClassic();
-    if (returning) document.querySelector('.portfolio-brand').focus({ preventScroll: true });
+    // Move focus only when switching from the world (on first load the page has no focus yet).
+    if (returning && document.activeElement !== document.body) document.querySelector('.portfolio-brand').focus({ preventScroll: true });
     const id = typeof target === 'string' ? target : '';
     const destination = document.getElementById(`classic-${id}`) || classicContent.querySelector(`[data-project-id="${CSS.escape(id)}"]`);
     if (destination && id) {
@@ -324,6 +344,19 @@ export function createNavigation({ sections, controls, audio }) {
     document.dispatchEvent(new CustomEvent('portfolio:enter-world'));
   }
 
+  /** Scroll to a project or piece of evidence, in whichever view is showing. */
+  function showProject(projectId, sectionId) {
+    if (classic.classList.contains('open')) return openClassic(projectId);
+    const inView = view.classList.contains('open')
+      && viewInner.querySelector(`[data-project-id="${CSS.escape(projectId)}"]`);
+    if (inView) {
+      const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      inView.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+      return undefined;
+    }
+    return openArea(sectionId, projectId);
+  }
+
   function activateNav(event) {
     const target = event.target.closest('[data-area]');
     if (!target) return;
@@ -334,6 +367,24 @@ export function createNavigation({ sections, controls, audio }) {
       navigation.then(() => classicContent.focus({ preventScroll: true }));
     }
   }
+
+  const toc = document.querySelector('.portfolio-toc');
+  sections.forEach((section) => {
+    const link = document.createElement('a');
+    link.href = `#${section.id}`;
+    link.dataset.area = section.id;
+    link.textContent = section.label;
+    portfolioNav.append(link);
+
+    const item = document.createElement('li');
+    item.innerHTML = `<a href="#${section.id}" data-area="${section.id}"><span>${section.number}</span><b>${section.label}</b><small>${section.summary}</small></a>`;
+    toc?.append(item);
+  });
+  const worldButton = document.createElement('button');
+  worldButton.id = 'worldToggle';
+  worldButton.type = 'button';
+  worldButton.textContent = '3D world';
+  portfolioNav.append(worldButton);
 
   sections.forEach((section) => {
     nav.insertBefore(
@@ -426,12 +477,20 @@ export function createNavigation({ sections, controls, audio }) {
     if (!event.target.closest('.portfolio-header')) closePortfolioMenu();
     const home = event.target.closest('[data-portfolio-home]');
     const project = event.target.closest('[data-project]');
-    if (home || project) {
+    if (home) {
       event.preventDefault();
-      openClassic(project ? project.dataset.project : 'home');
+      openClassic('home');
+    } else if (project) {
+      event.preventDefault();
+      showProject(project.dataset.project, project.dataset.in || 'projects');
     }
+    if (event.target.closest('[data-open-classic]')) openClassic();
   });
-  window.addEventListener('hashchange', () => openClassic(location.hash.slice(1) || 'home'));
+  window.addEventListener('hashchange', () => {
+    const id = location.hash.slice(1);
+    if (!classic.classList.contains('open') && (!id || id === 'home' || id === 'world')) return;
+    openClassic(id || 'home');
+  });
 
   document.getElementById('errorClassic').addEventListener('click', () => {
     document.getElementById('loadError').hidden = true;
@@ -451,7 +510,8 @@ export function createNavigation({ sections, controls, audio }) {
 
   document.querySelector('.brand').addEventListener('click', (event) => {
     event.preventDefault();
-    openClassic('home');
+    closeArea();
+    document.dispatchEvent(new CustomEvent('portfolio:world-home'));
   });
 
   view.addEventListener('keydown', (event) => {

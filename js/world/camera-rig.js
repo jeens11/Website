@@ -28,6 +28,12 @@ export function createCameraRig(THREE, camera, {
   let fov = baseFov;
   let roll = 0;
   let hasFocus = false;
+  let kickAmount = 0;
+
+  /** A short shake that decays on its own, e.g. when a boost fires. */
+  function kick(strength = 1) {
+    kickAmount = Math.max(kickAmount, strength);
+  }
 
   function reset(car, heading = car.rotation.y) {
     cameraHeading = heading;
@@ -36,6 +42,7 @@ export function createCameraRig(THREE, camera, {
     fov = baseFov;
     roll = 0;
     hasFocus = false;
+    kickAmount = 0;
     update({ car, heading, delta: 0 });
   }
 
@@ -85,8 +92,10 @@ export function createCameraRig(THREE, camera, {
       camX *= maxRadius / radial;
       camZ *= maxRadius / radial;
     }
-    const shake = boosting ? Math.sin(now * 0.09) * 0.05 : 0;
-    camera.position.set(camX, car.position.y + lift + shake, camZ);
+    kickAmount *= Math.exp(-4.5 * (delta || 0.016));
+    const kickSide = Math.sin(now * 0.061) * kickAmount * 0.28;
+    const shake = (boosting ? Math.sin(now * 0.09) * 0.05 : 0) + Math.sin(now * 0.083 + 1) * kickAmount * 0.2;
+    camera.position.set(camX + rightX * kickSide, car.position.y + lift + shake, camZ + rightZ * kickSide);
 
     lookTarget.set(
       car.position.x + forwardX * (lookAhead + speedNorm * 4),
@@ -112,5 +121,5 @@ export function createCameraRig(THREE, camera, {
     }
   }
 
-  return { reset, update };
+  return { reset, update, kick };
 }

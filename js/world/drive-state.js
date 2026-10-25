@@ -23,5 +23,7 @@ export function createDriveState() {
     start: { ...start },
     resetRequested: false,
     moved: false,
+    // Set by the autopilot: { forward, brake, turn, throttle } while it drives.
+    autoInput: null,
   };
 }
