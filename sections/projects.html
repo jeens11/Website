@@ -1,10 +1,62 @@
 <header class="section-heading">
-  <p class="eyebrow">[02] Projects</p>
+  <p class="eyebrow">[01] Selected work</p>
   <h2>Ideas made<br>interactive.</h2>
   <p class="section-meta">Interaction design · Data · Software</p>
 </header>
 <p class="lead">I build experiences that help people explore a concept, see a pattern, or understand a system. These projects show how I move from a question to a working interaction or useful result.</p>
 
+<ul class="project-jump" aria-label="Jump to a project"><li><a href="#airsculpt" data-project="airsculpt">01 / AirSculpt</a></li><li><a href="#four-part-harmony" data-project="four-part-harmony">02 / Four-Part Harmony</a></li><li><a href="#data-software" data-project="data-software">03 / Data &amp; software</a></li></ul>
+
+<article class="case-study" data-project-id="airsculpt" aria-label="AirSculpt case study">
+  <div class="case-head">
+    <div>
+      <div class="case-label"><span>CPSC 581 · Group Project 2</span><span class="project-state">Completed · October 2026</span></div>
+      <h3>AirSculpt</h3>
+      <p class="case-subtitle">Remote 3D sculpting,<br>taught through movement.</p>
+      <p class="case-description">How can an expert teach the movement behind a sculpting technique from a distance? AirSculpt turns fingertip movement and a pinch into a live 3D demonstration. The learner sees a translucent ghost, practises on their own clay, and receives feedback on where and how to correct it.</p>
+      <div class="case-meta" aria-label="Project technologies"><span>React + TypeScript</span><span>Three.js</span><span>MediaPipe</span><span>Socket.IO</span></div>
+      <div class="case-links"><a href="https://airsculpt.onrender.com" target="_blank" rel="noopener noreferrer">Open prototype ↗</a><a href="assets/airsculpt/process.pdf" target="_blank" rel="noopener noreferrer">Read process report ↗</a><a href="https://github.com/hardikmehta1122/airsculpt" target="_blank" rel="noopener noreferrer">Source code ↗</a></div>
+    </div>
+    <figure class="case-media"><video controls playsinline preload="none" poster="assets/airsculpt/studio.webp"><source src="assets/airsculpt/demo.mp4" type="video/mp4">Watch the <a href="assets/airsculpt/demo.mp4">AirSculpt demonstration video</a>.</video><figcaption>Watch the final demonstration: an expert teaches, a novice sculpts independently, and guidance stays attached to the 3D object.</figcaption></figure>
+  </div>
+  <p class="case-role"><b>My contribution</b><span>Design and documentation. I contributed to AirSculpt’s design and helped document the team’s process and design decisions.</span></p>
+  <p class="case-team"><b>Team project:</b> Jawad Naheen Shamim, Hardik Mehta, Shashwat Tank, and Happy Prajapati. The process and system described here are the team’s collective work.</p>
+  <div class="process-strip" aria-label="AirSculpt design progression">
+    <article><span>01 / EXPLORE</span><h4>Compare input ideas</h4><p>Consider phone motion, a tracked stylus, and webcam gestures against expressiveness, teaching value, and equipment needs.</p></article>
+    <article><span>02 / PROTOTYPE</span><h4>Teach through a ghost</h4><p>Stream the expert’s stroke while keeping the learner’s clay separate, so observing a demonstration never completes their attempt.</p></article>
+    <article><span>03 / REFINE</span><h4>Show the next correction</h4><p>Replace an ambiguous score with a task-region comparison, Pull/Push colours, and live expert pointing.</p></article>
+    <article><span>04 / EXTEND</span><h4>Bring the class in</h4><p>Add QR joining, individual phone practice, and a class wall so a projected demonstration can become a shared activity.</p></article>
+  </div>
+  <p class="case-takeaway"><b>Design takeaway:</b> A demonstration becomes more useful when feedback tells the learner what to change, where, and why.</p>
+  <details class="case-process">
+    <summary>Explore the design process and iterations</summary>
+    <div class="case-process-body">
+      <h4>From expressive input to useful guidance</h4>
+      <p>The team converged on webcam input because it works with a standard laptop. The index finger locates the brush; a deliberate thumb–index pinch starts a stroke. Tool selection stays explicit, and a mouse fallback preserves the lesson when tracking is unavailable.</p>
+      <div class="case-gallery case-gallery--sketch">
+        <figure><button class="zoomable" type="button" data-zoom="assets/airsculpt/input-concept.webp" data-caption="Alternative input concept from the team report: moving a phone to control a sculpting brush."><img src="assets/airsculpt/input-concept.webp" alt="Process sketch exploring phone motion as input to a 3D sculpting interface" loading="lazy" width="542" height="430"></button><figcaption>Alternative input: phone motion offered embodiment, but added device alignment and tracking complexity.</figcaption></figure>
+        <figure><button class="zoomable" type="button" data-zoom="assets/airsculpt/gesture-mapping.webp" data-caption="Team interaction mapping: point to position, pinch to sculpt, hand distance to vary strength, mouse as fallback."><img src="assets/airsculpt/gesture-mapping.webp" alt="Sketch mapping pointing, pinching, hand distance, and mouse fallback to sculpting actions" loading="lazy" width="960" height="272"></button><figcaption>Gesture mapping: separate pointing from editing and keep a familiar fallback.</figcaption></figure>
+      </div>
+      <p class="case-limits">These are team process figures from the submitted report. Some figures explain decisions retrospectively; they are not records of a participant study.</p>
+      <h4>Three decisions that changed the experience</h4>
+      <div class="case-gallery">
+        <figure><button class="zoomable" type="button" data-zoom="assets/airsculpt/directional-feedback.webp" data-caption="Iteration 2: blue indicates where the novice needs to Pull; orange-red indicates where to Push."><img src="assets/airsculpt/directional-feedback.webp" width="800" height="600" loading="lazy" alt="AirSculpt novice view showing directional geometric feedback on the clay"></button><figcaption><b>Feedback with direction.</b> An early global score could rate untouched clay near 97%. Comparing the edited region made progress relevant to the demonstrated task.</figcaption></figure>
+        <figure><button class="zoomable" type="button" data-zoom="assets/airsculpt/expert-pointer.webp" data-caption="Iteration 2: the expert points at the learner’s clay without changing the learner’s geometry."><img src="assets/airsculpt/expert-pointer.webp" width="800" height="600" loading="lazy" alt="Novice clay with a spatial marker from the expert’s Point and guide tool"></button><figcaption><b>Guidance without taking over.</b> The expert points at the novice’s model in real time; the learner remains responsible for the sculpting.</figcaption></figure>
+        <figure><button class="zoomable" type="button" data-zoom="assets/airsculpt/class-wall.webp" data-caption="Iteration 6 prototype: a class wall brings independent learner models and progress summaries together."><img src="assets/airsculpt/class-wall.webp" width="800" height="534" loading="lazy" alt="AirSculpt class wall prototype with independent learner sculptures and progress summaries"></button><figcaption><b>Participation beyond a pair.</b> QR joining and independent models extend the teaching loop to a classroom, with a wall for the expert to monitor.</figcaption></figure>
+      </div>
+      <div class="decision-grid">
+        <article><span>Iterations 1–2 / Teaching loop</span><h5>Keep demonstration and practice independent</h5><p>Private sessions establish expert and novice roles. A ghost and replay communicate the target; signed feedback and a pointer support the learner’s own attempt.</p></article>
+        <article><span>Iteration 3 / Embodied output</span><h5>Make pressure visible</h5><p>Calibrated hand distance modulates brush strength. Stroke beads vary with strength, and optional audio gives another channel for progress feedback.</p></article>
+        <article><span>Iterations 4–5 / Control &amp; hierarchy</span><h5>Make the workspace easier to understand</h5><p>Four starting objects, clear orbit instructions, Reset view, and a refined panel hierarchy keep attention on the clay while preserving control.</p></article>
+        <article><span>Iteration 6 / Shared participation</span><h5>Scale the same lesson</h5><p>Class mode keeps the same demonstrate–watch–practise–review cycle. Each student works on an independent object using phone touch.</p></article>
+      </div>
+      <p class="case-limits"><b>Evaluation and scope:</b> The report documents prototype walkthroughs and heuristic inspection. Shape match is a geometric demonstration metric; the project does not claim measured learning gains. AirSculpt teaches Blender-like sculpting in its own web application, and session state is temporary.</p>
+    </div>
+  </details>
+</article>
+
+<section data-project-id="four-part-harmony" aria-label="Four-Part Harmony case study">
+<p class="project-divider">Earlier work / CPSC 581 · Group Project 1</p>
 <article class="featured-project">
   <div class="featured-copy">
     <p class="tag">CPSC 581</p>
@@ -24,8 +76,8 @@
     <a class="button-link" href="assets/four-part-harmony-process.pdf" target="_blank" rel="noopener noreferrer">Read process report ↗</a>
   </div>
   <div class="featured-media">
-    <img src="assets/cover-000.webp" alt="Four-Part Harmony interface with four teammate musicians">
-    <video controls playsinline preload="metadata" poster="assets/cover-000.webp"><source src="assets/four-part-harmony-demo.mp4" type="video/mp4"><source src="assets/four-part-harmony-demo.webm" type="video/webm">Your browser cannot play this video. <a href="assets/four-part-harmony-demo.mp4" download>Download the demo</a>.</video>
+    <img src="assets/cover-000.webp" alt="Four-Part Harmony interface with four teammate musicians" width="1500" height="884" loading="lazy">
+    <video controls playsinline preload="none" poster="assets/cover-000.webp"><source src="assets/four-part-harmony-demo.mp4" type="video/mp4"><source src="assets/four-part-harmony-demo.webm" type="video/webm">Your browser cannot play this video. <a href="assets/four-part-harmony-demo.mp4" download>Download the demo</a>.</video>
   </div>
 </article>
 
@@ -39,22 +91,22 @@
 <h3 class="subheading">Hand-drawn sketches</h3>
 <p class="lead sketch-lead">Early sketches I drew for Group Project 1. They were quick and low-detail on purpose, so the team could compare ideas before committing to any of them.</p>
 <div class="sketch-gallery">
-  <figure><button type="button" class="zoomable" data-zoom="assets/sketches/sketch-interface.webp" data-caption="Interface sketch · a stage of four sleeping teammates with “tap me” labels, spotlights, and a “The band” panel."><img src="assets/sketches/sketch-interface.webp" alt="Hand-drawn sketch of the interface: four sleeping round characters on a stage with spotlights, each labelled tap me, beside a panel titled The band" loading="lazy"></button><figcaption>Interface · wake each teammate with a tap.</figcaption></figure>
-  <figure><button type="button" class="zoomable" data-zoom="assets/sketches/sketch-characters.webp" data-caption="Character sketch · Shashwat, Happy, Hardik, and Jawad, each with a small prop that hints at personality."><img src="assets/sketches/sketch-characters.webp" alt="Hand-drawn sketch of four round characters named Shashwat, Happy, Hardik, and Jawad, each with a small prop; Jawad wears a headset" loading="lazy"></button><figcaption>Characters · a prop for each personality.</figcaption></figure>
+  <figure><button type="button" class="zoomable" data-zoom="assets/sketches/sketch-interface.webp" data-caption="Interface sketch · a stage of four sleeping teammates with “tap me” labels, spotlights, and a “The band” panel."><img src="assets/sketches/sketch-interface.webp" alt="Hand-drawn sketch of the interface: four sleeping round characters on a stage with spotlights, each labelled tap me, beside a panel titled The band" loading="lazy" width="956" height="428"></button><figcaption>Interface · wake each teammate with a tap.</figcaption></figure>
+  <figure><button type="button" class="zoomable" data-zoom="assets/sketches/sketch-characters.webp" data-caption="Character sketch · Shashwat, Happy, Hardik, and Jawad, each with a small prop that hints at personality."><img src="assets/sketches/sketch-characters.webp" alt="Hand-drawn sketch of four round characters named Shashwat, Happy, Hardik, and Jawad, each with a small prop; Jawad wears a headset" loading="lazy" width="720" height="352"></button><figcaption>Characters · a prop for each personality.</figcaption></figure>
 </div>
 
 <div class="project-gallery">
-  <figure><img src="assets/iteration-003.webp" alt="Four-Part Harmony prototype showing active teammates and relationship feedback"><figcaption>Prototype · make team relationships visible.</figcaption></figure>
-  <figure><img src="assets/iteration-004.webp" alt="Refined interface with concise synchronization feedback"><figcaption>Refinement · explain why a relationship changed.</figcaption></figure>
-  <figure><img src="assets/iteration-006.webp" alt="Onboarding dialog explaining how to activate and combine teammates"><figcaption>Onboarding · make the interaction easy to try.</figcaption></figure>
+  <figure><img src="assets/iteration-003.webp" alt="Four-Part Harmony prototype showing active teammates and relationship feedback" width="1500" height="932" loading="lazy"><figcaption>Prototype · make team relationships visible.</figcaption></figure>
+  <figure><img src="assets/iteration-004.webp" alt="Refined interface with concise synchronization feedback" width="1500" height="820" loading="lazy"><figcaption>Refinement · explain why a relationship changed.</figcaption></figure>
+  <figure><img src="assets/iteration-006.webp" alt="Onboarding dialog explaining how to activate and combine teammates" width="1500" height="820" loading="lazy"><figcaption>Onboarding · make the interaction easy to try.</figcaption></figure>
 </div>
 
-<h3 class="subheading">Data and software</h3>
+</section>
+<h3 class="subheading" data-project-id="data-software">Data and software</h3>
 <div class="project-cards">
   <article class="project-card"><p class="tag">Python · scikit-learn · XGBoost · SHAP · Power BI</p><h4>Power Plant Output Prediction</h4><p>Analyzed six years of combined-cycle plant observations, compared regression models, and used feature importance and SHAP to explain which conditions influenced generation.</p><strong class="metric">9,568 observations · 92.9% variance explained</strong></article>
   <article class="project-card"><p class="tag">Python · SQL · MySQL · Power BI · DAX</p><h4>Retail Banking Churn &amp; Deposit Risk</h4><p>Validated a 10,000-customer database and built churn segments. One-product holders churned at 27.7% versus 7.6% for two-product holders; Germany and customers aged 46–60 were the highest-risk segments.</p><strong class="metric">$168.4M deposit exposure · 1,792 high-risk customers</strong></article>
   <article class="project-card"><p class="tag">Python · SQL · MySQL · Power BI · DAX</p><h4>Card Spend &amp; Category Segmentation</h4><p>Profiled 1.29 million transactions and segmented spending. The analysis found that 0.58% of transactions represented 4.37% of dollar volume in fraud exposure.</p><strong class="metric">1.29M+ transactions · $91.2M spend</strong></article>
   <article class="project-card"><p class="tag">Node.js · Express · JavaScript · MySQL</p><h4>HistoraDB</h4><p>Designed a relational historical-figures platform and built tested endpoints for search, filtering, CRUD, authentication, and administration.</p><strong class="metric">12-table schema · 50+ endpoints · &lt;100ms P95</strong></article>
-  <article class="project-card project-card--wide"><p class="tag">CPSC 581 · Group Project 2 · In progress</p><h4>Expertise sharing for 3D CAD</h4><p>Exploring how experts and novice users can share CAD expertise remotely through embodied input and output. The direction and implementation are still developing.</p><strong class="metric">More design evidence will be added as the project develops.</strong></article>
 </div>
 <footer class="section-footer"><span>Sketch · compare · prototype · evaluate · refine</span></footer>

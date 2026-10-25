@@ -57,6 +57,8 @@ export function createNavigation({ sections, controls, audio }) {
   const classicContent = document.getElementById('classicContent');
   const nav = document.getElementById('siteNav');
   const menuButton = document.getElementById('menuButton');
+  const portfolioNav = document.getElementById('portfolioNav');
+  const portfolioMenuButton = document.getElementById('portfolioMenuButton');
 
   const backgroundControls = [
     document.querySelector('.topbar'),
@@ -77,6 +79,8 @@ export function createNavigation({ sections, controls, audio }) {
   let lightboxReturn = null;
   let returnFocus = null;
   let openRequest = 0;
+  let classicLoad;
+  let portfolioScroll = 0;
 
   const contentCache = new Map();
 
@@ -87,11 +91,14 @@ export function createNavigation({ sections, controls, audio }) {
     lightboxCaption.textContent = button.dataset.caption || '';
     lightbox.hidden = false;
     lightbox.setAttribute('aria-hidden', 'false');
+    classic.inert = true;
+    view.inert = true;
+    document.body.classList.add('lightbox-open');
 
     requestAnimationFrame(() => lightbox.classList.add('open'));
 
     document.getElementById('lightboxClose').focus({ preventScroll: true });
-    audio?.play('open');
+    if (!classic.classList.contains('open')) audio?.play('open');
   }
 
   function closeLightbox() {
@@ -100,8 +107,11 @@ export function createNavigation({ sections, controls, audio }) {
     lightbox.classList.remove('open');
     lightbox.setAttribute('aria-hidden', 'true');
     lightbox.hidden = true;
+    classic.inert = !classic.classList.contains('open');
+    view.inert = !view.classList.contains('open');
+    document.body.classList.remove('lightbox-open');
     lightboxReturn?.focus?.({ preventScroll: true });
-    audio?.play('close');
+    if (!classic.classList.contains('open')) audio?.play('close');
 
     return true;
   }
@@ -122,6 +132,9 @@ export function createNavigation({ sections, controls, audio }) {
           }
 
           return response.text();
+        }).catch((error) => {
+          contentCache.delete(section.id);
+          throw error;
         }),
       );
     }
@@ -132,6 +145,7 @@ export function createNavigation({ sections, controls, audio }) {
   async function openArea(id) {
     const section = sections.find((item) => item.id === id);
     if (!section) return;
+    if (classic.classList.contains('open')) return openClassic(id);
 
     const wasOpen = view.classList.contains('open');
     const request = ++openRequest;
@@ -152,6 +166,7 @@ export function createNavigation({ sections, controls, audio }) {
 
       if (request !== openRequest) return;
 
+      viewInner.querySelectorAll('video').forEach((video) => video.pause());
       viewInner.replaceChildren(makeSectionFragment(markup));
       setupReveal(viewInner, view);
     } catch (error) {
@@ -177,10 +192,12 @@ export function createNavigation({ sections, controls, audio }) {
     void view.offsetWidth;
 
     view.classList.add('open');
+    view.inert = false;
     view.setAttribute('aria-hidden', 'false');
     audio?.play(wasOpen ? 'switch' : 'open');
 
     classic.classList.remove('open');
+    classic.inert = true;
     setBackgroundInert(true);
     view.scrollTop = 0;
 
@@ -199,6 +216,8 @@ export function createNavigation({ sections, controls, audio }) {
     }
 
     view.classList.remove('open');
+    view.querySelectorAll('video').forEach((video) => video.pause());
+    view.inert = true;
     view.setAttribute('aria-hidden', 'true');
     setBackgroundInert(classic.classList.contains('open'));
     controls.reset();
@@ -209,44 +228,100 @@ export function createNavigation({ sections, controls, audio }) {
     }
   }
 
-  async function openClassic() {
+  function closePortfolioMenu() {
+    portfolioNav.classList.remove('open');
+    portfolioMenuButton.setAttribute('aria-expanded', 'false');
+    portfolioMenuButton.innerHTML = 'Menu <span aria-hidden="true">+</span>';
+  }
+
+  function loadClassic() {
+    if (classicLoad) return classicLoad;
+    const order = ['projects', 'experience', 'skills', 'education', 'contact'];
+    const ordered = order.map((id) => sections.find((section) => section.id === id));
+    classicLoad = Promise.allSettled(ordered.map(loadSection)).then((results) => {
+      classicContent.replaceChildren();
+      results.forEach((result, index) => {
+        const section = ordered[index];
+        const wrapper = document.createElement('section');
+        wrapper.className = 'classic-section';
+        wrapper.id = `classic-${section.id}`;
+        wrapper.dataset.section = section.id;
+        wrapper.style.setProperty('--accent', section.color);
+        wrapper.setAttribute('aria-label', section.label);
+        if (result.status === 'fulfilled') {
+          wrapper.append(makeSectionFragment(result.value));
+        } else {
+          const message = document.createElement('p');
+          message.className = 'load-message';
+          message.append(`Could not load ${section.label}. `);
+          const retry = document.createElement('button');
+          retry.type = 'button';
+          retry.textContent = 'Try again';
+          retry.addEventListener('click', () => {
+            classicLoad = null;
+            openClassic(section.id);
+          });
+          message.append(retry);
+          wrapper.append(message);
+        }
+        classicContent.append(wrapper);
+        setupReveal(wrapper, null);
+      });
+      if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            portfolioNav.querySelectorAll('[data-area]').forEach((link) => {
+              if (link.dataset.area === entry.target.dataset.section) link.setAttribute('aria-current', 'location');
+              else link.removeAttribute('aria-current');
+            });
+          });
+        }, { rootMargin: '-15% 0px -65% 0px' });
+        classicContent.querySelectorAll('.classic-section').forEach((section) => observer.observe(section));
+      }
+    });
+    return classicLoad;
+  }
+
+  async function openClassic(target) {
+    const returning = !classic.classList.contains('open');
     classic.classList.add('open');
+    classic.inert = false;
+    classic.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('portfolio-mode');
     closeArea();
     setBackgroundInert(true);
+    audio?.setDrivingActive(false);
     nav.classList.remove('open');
-
-    const results = await Promise.allSettled(sections.map(loadSection));
-
-    classicContent.replaceChildren();
-
-    results.forEach((result, index) => {
-      const section = sections[index];
-      const wrapper = document.createElement('section');
-
-      wrapper.className = 'classic-section';
-      wrapper.id = `classic-${section.id}`;
-      wrapper.style.setProperty('--accent', section.color);
-
-      if (result.status === 'fulfilled') {
-        wrapper.append(makeSectionFragment(result.value));
-      } else {
-        const message = document.createElement('p');
-        message.className = 'load-message';
-        message.textContent = `Could not load ${section.label}.`;
-        wrapper.append(message);
-      }
-
-      classicContent.append(wrapper);
-      setupReveal(wrapper, classic);
-    });
-
-    classic.scrollTop = 0;
+    closePortfolioMenu();
+    await loadClassic();
+    if (returning) document.querySelector('.portfolio-brand').focus({ preventScroll: true });
+    const id = typeof target === 'string' ? target : '';
+    const destination = document.getElementById(`classic-${id}`) || classicContent.querySelector(`[data-project-id="${CSS.escape(id)}"]`);
+    if (destination && id) {
+      history.replaceState(null, '', `#${id}`);
+      destination.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'start' });
+    } else if (id === 'home') {
+      history.replaceState(null, '', '#home');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      window.scrollTo(0, portfolioScroll);
+    }
   }
 
   function closeClassic() {
+    portfolioScroll = window.scrollY;
+    classic.querySelectorAll('video').forEach((video) => video.pause());
     classic.classList.remove('open');
+    classic.inert = true;
+    classic.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('portfolio-mode');
+    document.body.classList.remove('is-driving');
+    closePortfolioMenu();
+    window.scrollTo(0, 0);
     audio?.setDrivingActive(true);
     setBackgroundInert(false);
+    document.dispatchEvent(new CustomEvent('portfolio:enter-world'));
   }
 
   function activateNav(event) {
@@ -254,7 +329,10 @@ export function createNavigation({ sections, controls, audio }) {
     if (!target) return;
 
     event.preventDefault();
-    openArea(target.dataset.area);
+    const navigation = openArea(target.dataset.area);
+    if (target.classList.contains('skip-link')) {
+      navigation.then(() => classicContent.focus({ preventScroll: true }));
+    }
   }
 
   sections.forEach((section) => {
@@ -284,7 +362,7 @@ export function createNavigation({ sections, controls, audio }) {
   });
 
   document.addEventListener('pointerover', (event) => {
-    if (event.pointerType === 'touch') return;
+    if (event.pointerType === 'touch' || classic.classList.contains('open')) return;
 
     if (event.target.closest('button:not(:disabled), a[href]')) {
       audio?.play('hover');
@@ -295,7 +373,7 @@ export function createNavigation({ sections, controls, audio }) {
     const control = event.target.closest('button:not(:disabled), a[href]');
 
     if (
-      control &&
+      !classic.classList.contains('open') && control &&
       !control.closest('[data-area]') &&
       !control.closest('#viewTabs') &&
       control.id !== 'soundToggle'
@@ -339,6 +417,22 @@ export function createNavigation({ sections, controls, audio }) {
   document.getElementById('classicToggle').addEventListener('click', openClassic);
   document.getElementById('worldToggle').addEventListener('click', closeClassic);
 
+  portfolioMenuButton.addEventListener('click', () => {
+    const open = portfolioNav.classList.toggle('open');
+    portfolioMenuButton.setAttribute('aria-expanded', String(open));
+    portfolioMenuButton.innerHTML = open ? 'Close <span aria-hidden="true">−</span>' : 'Menu <span aria-hidden="true">+</span>';
+  });
+  document.addEventListener('click', (event) => {
+    if (!event.target.closest('.portfolio-header')) closePortfolioMenu();
+    const home = event.target.closest('[data-portfolio-home]');
+    const project = event.target.closest('[data-project]');
+    if (home || project) {
+      event.preventDefault();
+      openClassic(project ? project.dataset.project : 'home');
+    }
+  });
+  window.addEventListener('hashchange', () => openClassic(location.hash.slice(1) || 'home'));
+
   document.getElementById('errorClassic').addEventListener('click', () => {
     document.getElementById('loadError').hidden = true;
     openClassic();
@@ -357,9 +451,7 @@ export function createNavigation({ sections, controls, audio }) {
 
   document.querySelector('.brand').addEventListener('click', (event) => {
     event.preventDefault();
-    closeArea();
-    closeClassic();
-    window.scrollTo(0, 0);
+    openClassic('home');
   });
 
   view.addEventListener('keydown', (event) => {
@@ -367,7 +459,7 @@ export function createNavigation({ sections, controls, audio }) {
 
     const focusable = [
       ...view.querySelectorAll(
-        'button:not(:disabled), a[href], video[controls]',
+        'button:not(:disabled), a[href], video[controls], summary',
       ),
     ].filter(
       (element) =>
@@ -397,7 +489,7 @@ export function createNavigation({ sections, controls, audio }) {
     if (closeLightbox()) return;
 
     closeArea();
-    closeClassic();
+    closePortfolioMenu();
     nav.classList.remove('open');
     menuButton.setAttribute('aria-expanded', 'false');
     menuButton.textContent = 'Menu';

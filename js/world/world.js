@@ -199,6 +199,7 @@ function buildWorld(THREE, { sections, controls, driveState, openArea, audio }) 
     // rAF timestamps can precede the build time on the first frame, so clamp both ways.
     const delta = Math.max(0, Math.min((now - lastTime) / 1000, 0.045));
     lastTime = now;
+    if (document.hidden || document.body.classList.contains('portfolio-mode')) return;
     if (driveState.resetRequested) {
       resetWorld();
       audio?.play('reset');

@@ -9,9 +9,14 @@ const view = document.getElementById('contentView');
 const classic = document.getElementById('classicSite');
 const driveState = createDriveState();
 const audio = createAudio();
+let worldReady = false;
+let worldStart;
+audio.setDrivingActive(false);
 
 // Browsers only allow sound after a gesture: start on the first one.
-const unlock = () => audio.unlock();
+const unlock = () => {
+  if (!document.body.classList.contains('portfolio-mode')) audio.unlock();
+};
 ['pointerdown', 'keydown', 'touchstart'].forEach((type) => {
   document.addEventListener(type, unlock, { passive: true });
 });
@@ -29,7 +34,7 @@ paintSoundToggle();
 
 const controls = createControls({
   driveState,
-  canDrive: () => !view.classList.contains('open') && !classic.classList.contains('open'),
+  canDrive: () => worldReady && !view.classList.contains('open') && !classic.classList.contains('open'),
 });
 const navigation = createNavigation({ sections: portfolioSections, controls, audio });
 
@@ -37,21 +42,40 @@ const intro = document.getElementById('intro');
 function dismissIntro() {
   if (!intro) return;
   intro.classList.add('done');
-  window.setTimeout(() => intro.remove(), 900);
+  intro.hidden = true;
 }
 
-try {
-  await startWorld({
-    sections: portfolioSections,
-    controls,
-    driveState,
-    openArea: navigation.openArea,
-    audio,
-  });
-} catch (error) {
-  console.error('The 3D world could not start.', error);
-  const loadError = document.getElementById('loadError');
-  loadError.hidden = false;
-}
-// Let the intro play for a moment even when the world loads instantly.
-window.setTimeout(dismissIntro, 900);
+document.addEventListener('portfolio:enter-world', async () => {
+  if (worldReady) {
+    window.dispatchEvent(new Event('resize'));
+    document.getElementById('classicToggle').focus({ preventScroll: true });
+    return;
+  }
+  intro.hidden = false;
+  intro.classList.remove('done');
+  document.getElementById('cancelWorld').focus({ preventScroll: true });
+  if (worldStart) return;
+  worldStart = startWorld({ sections: portfolioSections, controls, driveState, openArea: navigation.openArea, audio });
+  try {
+    await worldStart;
+    worldReady = true;
+    if (!classic.classList.contains('open')) document.getElementById('classicToggle').focus({ preventScroll: true });
+  } catch (error) {
+    console.error('The optional 3D world could not start.', error);
+    worldStart = null;
+    const status = document.getElementById('portfolioStatus');
+    status.textContent = 'The 3D experience is unavailable on this device right now. You can explore all of my work below.';
+    status.hidden = false;
+    await navigation.openClassic();
+  } finally {
+    dismissIntro();
+  }
+});
+
+// Reading the portfolio never waits for a 3D library, a camera, or a sound gesture.
+document.getElementById('cancelWorld').addEventListener('click', () => {
+  dismissIntro();
+  navigation.openClassic();
+});
+
+await navigation.openClassic(location.hash.slice(1));

@@ -1,9 +1,29 @@
-JAWAD NAHEEN SHAMIM — PORTFOLIO WORLD
+JAWAD NAHEEN SHAMIM — PORTFOLIO
+
+The website opens as a scrolling portfolio on desktop, tablet, and mobile.
+Projects, experience, skills, education, and contact are directly accessible.
+The completed AirSculpt case study includes its demonstration, report, team
+process figures, and selected iteration screenshots. The original 3D world is
+available through Explore 3D; its library is requested only when selected.
+Portfolio reading does not start audio or require WebGL.
+
+UPDATE THE LIVE WEBSITE THROUGH GITHUB
+1. Download and unzip jawad-portfolio-final.zip.
+2. Open the inner jawad-portfolio folder. Its contents include index.html,
+   css, js, sections, assets, README.txt, CNAME, and serve.py.
+3. Open https://github.com/jeens11/Website and select the main branch.
+4. Choose Add file, then Upload files. Drag all the inner folder's contents
+   into the upload area. The uploaded index.html must be at the repository
+   root, alongside css, js, sections, and assets.
+5. Wait for all uploads. Use a commit message such as
+   "Update portfolio layout and add AirSculpt", then commit to main.
+6. If the existing Vercel project tracks this repository's main branch,
+   that commit triggers deployment. Check the project's Deployments page
+   for successful completion, then refresh https://jawadnaheenshamim.com/.
 
 RUN LOCALLY (MAC)
-1. Extract jawad-design-portfolio.zip.
-2. Open Terminal in the extracted jawad-design-portfolio folder (the folder
-   that directly contains index.html).
+1. Unzip the website source or clone the repository.
+2. Open Terminal in the folder that directly contains index.html.
 3. Run: python3 serve.py
    (serve.py is a small server included here. Use it instead of
    `python3 -m http.server`, which cannot seek video, so the demo video will
@@ -11,14 +31,13 @@ RUN LOCALLY (MAC)
 4. Open http://localhost:8000 in Chrome or Safari.
 5. Leave Terminal running while you use the site.
 
-If port 8000 is already in use, stop the other server with Ctrl+C in its
-Terminal, or run: python3 -m http.server 8001
-Then open http://localhost:8001 (use `python3 serve.py 8001`).
+If port 8000 is already in use, run: python3 serve.py 8001
+Then open http://localhost:8001.
 
 Do not open index.html directly with file://. The site loads its section files
-with fetch(), so it needs a local HTTP server. The 3D world also loads Three.js
-from jsDelivr and needs an internet connection. If WebGL or the CDN is
-unavailable, choose “Classic site” to browse the content.
+with fetch(), so it needs a local HTTP server. The optional 3D world loads
+Three.js from jsDelivr and needs an internet connection. If WebGL or the CDN
+is unavailable, the normal portfolio remains available automatically.
 
 CONTROLS
 Desktop: W accelerates, S brakes and reverses, and A/D steer. Arrow keys work
@@ -38,6 +57,7 @@ css/base.css               Theme, typography, and shared defaults
 css/world.css              Header, 3D scene overlay, map, prompts, controls
 css/sections.css           Portfolio overlays and section content styles
 css/responsive.css          Tablet, phone, touch, and reduced-motion rules
+css/portfolio.css           Default portfolio layout, mobile navigation, case studies
 js/main.js                 Application startup and dependency wiring
 js/portfolio-data.js       Section labels, scene landmarks, and section paths
 js/controls.js             Keyboard, joystick, drift, reset, and interaction input
